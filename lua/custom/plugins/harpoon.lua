@@ -49,7 +49,7 @@ return {
     -- Toggle Harpoon quick menu
     vim.keymap.set('n', '<leader>H', function()
       harpoon.ui:toggle_quick_menu(harpoon:list())
-    end)
+    end, { desc = 'Show harpoon menu' })
 
     -- Toggle Telescope menu (Optional)
     vim.keymap.set('n', '<leader>he', function()
