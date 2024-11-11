@@ -691,28 +691,46 @@ require('lazy').setup({
     opts = {
       notify_on_error = false,
       format_on_save = function(bufnr)
-        -- Disable "format_on_save lsp_fallback" for languages that don't
-        -- have a well standardized coding style. You can add additional
-        -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = true, cpp = true }
-        local lsp_format_opt
-        if disable_filetypes[vim.bo[bufnr].filetype] then
-          lsp_format_opt = 'never'
-        else
-          lsp_format_opt = 'fallback'
-        end
+        local disable_filetypes = {
+          c = true,
+          cpp = true,
+        }
+        local lsp_format_opt = disable_filetypes[vim.bo[bufnr].filetype] and 'never' or 'fallback'
         return {
           timeout_ms = 500,
           lsp_format = lsp_format_opt,
         }
       end,
       formatters_by_ft = {
+        -- Match your installed formatters
         lua = { 'stylua' },
-        -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
-        --
-        -- You can use 'stop_after_first' to run the first available formatter from the list
-        -- javascript = { "prettierd", "prettier", stop_after_first = true },
+        python = { 'black' },
+        javascript = { { 'prettierd', 'prettier' } },
+        typescript = { { 'prettierd', 'prettier' } },
+        javascriptreact = { { 'prettierd', 'prettier' } },
+        typescriptreact = { { 'prettierd', 'prettier' } },
+        json = { { 'prettierd', 'prettier' } },
+        yaml = { { 'prettierd', 'prettier' } },
+        markdown = { { 'prettierd', 'prettier' } },
+        html = { { 'prettierd', 'prettier' } },
+        css = { { 'prettierd', 'prettier' } },
+        sh = { 'shfmt' },
+      },
+      -- Optional: Define formatter-specific settings
+      formatters = {
+        stylua = {
+          -- You can specify formatter options here
+          prepend_args = { '--indent-type', 'Spaces', '--indent-width', '2' },
+        },
+        prettier = {
+          prepend_args = { '--single-quote', '--trailing-comma', 'es5' },
+        },
+        black = {
+          prepend_args = { '--line-length', '88' },
+        },
+        shfmt = {
+          prepend_args = { '-i', '2', '-ci' },
+        },
       },
     },
   },
@@ -839,14 +857,30 @@ require('lazy').setup({
     --
     -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
     'folke/tokyonight.nvim',
-    priority = 1000, -- Make sure to load this before all the other start plugins.
+    priority = 1000,
+    opts = {
+      transparent = true, -- Enable transparency
+      style = 'night',
+      styles = {
+        -- Style to be applied to different syntax groups
+        comments = { italic = true },
+        keywords = { italic = true },
+        functions = {},
+        variables = {},
+        -- Background styles. Can be "dark", "transparent" or "normal"
+        sidebars = 'transparent',
+        floats = 'transparent',
+      },
+    },
     init = function()
-      -- Load the colorscheme here.
-      -- Like many other themes, this one has different styles, and you could load
-      -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
+      -- Load the colorscheme
       vim.cmd.colorscheme 'tokyonight-night'
-
-      -- You can configure highlights by doing something like:
+      -- Additional transparency tweaks
+      vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
+      vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' })
+      -- Optional: Make line numbers more visible on transparent bg
+      vim.api.nvim_set_hl(0, 'LineNr', { fg = '#5081c0' })
+      -- Remove any background from comments
       vim.cmd.hi 'Comment gui=none'
     end,
   },
