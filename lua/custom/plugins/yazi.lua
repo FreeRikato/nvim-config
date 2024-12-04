@@ -4,6 +4,7 @@ return {
     'nvim-lua/plenary.nvim',
   },
   event = 'VeryLazy',
+  priority = 1000, -- Ensure it loads early
   -- Keymaps that don't conflict with oil.nvim
   keys = {
     { '<leader>-', '<cmd>Yazi<cr>', desc = 'Open yazi at current file' },
