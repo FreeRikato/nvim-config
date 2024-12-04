@@ -1,81 +1,108 @@
--- lua/custom/plugins/harpoon.lua
-
 return {
+  -- Plugin specification
   'ThePrimeagen/harpoon',
-  branch = 'harpoon2',
+  branch = 'harpoon2', -- Specifically use Harpoon 2
   dependencies = {
-    'nvim-lua/plenary.nvim',
-    'nvim-telescope/telescope.nvim', -- Optional: If you want Telescope integration
+    'nvim-lua/plenary.nvim', -- Required dependency for Harpoon
   },
   config = function()
+    -- Initialize harpoon
     local harpoon = require 'harpoon'
 
-    -- REQUIRED: Basic harpoon setup
+    -- REQUIRED SETUP
     harpoon:setup {
+      -- Configure the menu width to be dynamic based on window size
+      menu = {
+        width = vim.api.nvim_win_get_width(0) - 4, -- Window width minus 4 for padding
+      },
       settings = {
-        save_on_toggle = true, -- Save all changes when UI is toggled
-        sync_on_ui_close = true, -- Save all changes when UI is closed
-        key = function() -- How the harpoon list key is looked up
-          return vim.loop.cwd() -- Use current working directory
-        end,
+        save_on_toggle = true, -- Automatically save marks when toggling the menu
       },
     }
 
-    -- Telescope configuration for Harpoon (Optional)
-    local function toggle_telescope(harpoon_files)
-      local conf = require('telescope.config').values
-      local file_paths = {}
-      for _, item in ipairs(harpoon_files.items) do
-        table.insert(file_paths, item.value)
-      end
+    -------------------
+    -- BASIC MAPPINGS
+    -------------------
 
-      require('telescope.pickers')
-        .new({}, {
-          prompt_title = 'Harpoon',
-          finder = require('telescope.finders').new_table {
-            results = file_paths,
-          },
-          previewer = conf.file_previewer {},
-          sorter = conf.generic_sorter {},
-        })
-        :find()
-    end
-
-    -- Add current file to Harpoon list
+    -- Add current file to harpoon marks
     vim.keymap.set('n', '<leader>a', function()
       harpoon:list():add()
-    end, { desc = 'Add file to harpoon' })
+    end, { desc = 'Add file to Harpoon' })
 
-    -- Toggle Harpoon quick menu
-    vim.keymap.set('n', '<leader>H', function()
-      harpoon.ui:toggle_quick_menu(harpoon:list())
-    end, { desc = 'Show harpoon menu' })
+    -- Toggle the harpoon quick menu with enhanced UI
+    vim.keymap.set('n', '<leader>h', function()
+      harpoon.ui:toggle_quick_menu(harpoon:list(), {
+        border = 'rounded', -- Add rounded borders to the menu
+        title = 'Harpoon', -- Add a title to the menu
+        title_pos = 'center', -- Center the title
+      })
+    end, { desc = 'Show Harpoon menu' })
 
-    -- Toggle Telescope menu (Optional)
-    vim.keymap.set('n', '<leader>he', function()
-      toggle_telescope(harpoon:list())
-    end, { desc = 'Open harpoon window in Telescope' })
+    ------------------------
+    -- NUMERICAL NAVIGATION
+    ------------------------
 
-    -- Quick navigation to files in Harpoon list
+    -- Create mappings for the first 5 marks (leader + number)
+    -- This allows quick jumping to marks using <leader>1 through <leader>5
+    for i = 1, 5 do
+      vim.keymap.set('n', '<leader>' .. i, function()
+        harpoon:list():select(i)
+      end, { desc = '󱡅 Harpoon buffer ' .. i })
+    end
+
+    ------------------------
+    -- SEQUENTIAL NAVIGATION
+    ------------------------
+
+    -- Navigate through marks sequentially with wrap-around
+    -- When you reach the end, it wraps to the beginning and vice versa
+    vim.keymap.set('n', '<C-p>', function()
+      harpoon:list():prev { ui_nav_wrap = true }
+    end, { desc = 'Harpoon: Prev buffer' })
+
+    vim.keymap.set('n', '<C-n>', function()
+      harpoon:list():next { ui_nav_wrap = true }
+    end, { desc = 'Harpoon: Next buffer' })
+
+    ------------------------
+    -- CHORD STYLE NAVIGATION
+    ------------------------
+
+    -- Alternative navigation using double key combinations
+    -- Press Ctrl-h followed by another key to jump to specific marks
     vim.keymap.set('n', '<C-h>', function()
       harpoon:list():select(1)
-    end)
+    end, { desc = 'Harpoon: Chord to buffer 1' })
+
     vim.keymap.set('n', '<C-j>', function()
       harpoon:list():select(2)
-    end)
+    end, { desc = 'Harpoon: Chord to buffer 2' })
+
     vim.keymap.set('n', '<C-k>', function()
       harpoon:list():select(3)
-    end)
+    end, { desc = 'Harpoon: Chord to buffer 3' })
+
     vim.keymap.set('n', '<C-l>', function()
       harpoon:list():select(4)
-    end)
+    end, { desc = 'Harpoon: Chord to buffer 4' })
 
-    -- Navigate through Harpoon list sequentially
-    vim.keymap.set('n', '<C-M-P>', function()
-      harpoon:list():prev()
-    end)
-    vim.keymap.set('n', '<C-M-N>', function()
-      harpoon:list():next()
-    end)
+    ------------------------
+    -- ADDITIONAL FUNCTIONALITY
+    ------------------------
+
+    -- Remove current file from harpoon list
+    vim.keymap.set('n', '<leader>hr', function()
+      harpoon:list():remove()
+    end, { desc = 'Remove file from Harpoon' })
+
+    -- Clear all marks
+    vim.keymap.set('n', '<leader>hc', function()
+      harpoon:list():clear()
+    end, { desc = 'Clear all Harpoon marks' })
+
+    -- Show harpoon marks in Telescope
+    vim.keymap.set('n', '<leader>hf', function()
+      require('telescope').extensions.harpoon.marks()
+    end, { desc = 'Show Harpoon marks in Telescope' })
   end,
 }

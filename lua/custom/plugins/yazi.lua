@@ -1,34 +1,50 @@
 return {
   'mikavilpas/yazi.nvim',
-  -- Change from VeryLazy to ensure it loads earlier
-  event = 'VimEnter',
+  dependencies = {
+    'nvim-lua/plenary.nvim',
+  },
+  event = 'VeryLazy',
+  -- Keymaps that don't conflict with oil.nvim
   keys = {
-    {
-      '<leader>-',
-      '<cmd>Yazi<cr>',
-      desc = 'Open yazi at the current file',
-    },
-    {
-      '<leader>cw',
-      '<cmd>Yazi cwd<cr>',
-      desc = "Open the file manager in nvim's working directory",
-    },
-    {
-      '<c-up>',
-      '<cmd>Yazi toggle<cr>',
-      desc = 'Resume the last yazi session',
-    },
+    { '<leader>-', '<cmd>Yazi<cr>', desc = 'Open yazi at current file' },
+    { '<leader>_', '<cmd>Yazi cwd<cr>', desc = 'Open yazi in working directory' },
+    { '<leader>yt', '<cmd>Yazi toggle<cr>', desc = 'Toggle yazi session' },
   },
   opts = {
+    -- Floating window configuration
+    popup = {
+      -- Size and position
+      width = 0.85,
+      height = 0.8,
+      border = 'single',
+      position = 'center',
+
+      -- Appearance
+      winblend = 0,
+      hl = {
+        border = 'FloatBorder',
+        normal = 'Normal',
+      },
+    },
+
+    -- Core behavior settings
     open_for_directories = true,
-    floating_window_scaling_factor = 0.9,
+    auto_close = true,
+    sync_cwd = true,
+    prefer_current_window = false,
+
+    -- Non-conflicting keymaps
     keymaps = {
-      show_help = '<f1>',
+      show_help = '<F1>',
+      open_file_in_vertical_split = '<C-v>',
+      open_file_in_horizontal_split = '<C-h>',
+      open_file_in_tab = '<C-t>',
+      grep_in_directory = '<C-f>',
+      replace_in_directory = '<C-r>',
+      cycle_open_buffers = '<C-b>',
+      copy_relative_path_to_selected_files = '<C-y>',
+      send_to_quickfix_list = '<C-q>',
+      change_working_directory = '<C-d>',
     },
   },
-  -- Add init function to disable netrw immediately
-  init = function()
-    vim.g.loaded_netrw = 1
-    vim.g.loaded_netrwPlugin = 1
-  end,
 }

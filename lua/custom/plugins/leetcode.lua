@@ -1,125 +1,113 @@
+-- lua/plugins/leetcode.lua
 return {
   'kawre/leetcode.nvim',
-  build = ':TSUpdate html',
   dependencies = {
-    -- Required dependencies
-    'nvim-telescope/telescope.nvim',
-    'nvim-lua/plenary.nvim', -- required by telescope
-    'MunifTanjim/nui.nvim',
-
-    -- Optional but recommended
-    'nvim-treesitter/nvim-treesitter',
-    'nvim-tree/nvim-web-devicons',
-    'rcarriga/nvim-notify',
+    'nvim-telescope/telescope.nvim', -- for problem selection
+    'nvim-lua/plenary.nvim', -- required dependency
+    'MunifTanjim/nui.nvim', -- UI components
   },
+  build = ':TSUpdate html', -- update treesitter for problem description
   opts = {
-    -- Set leetcode.nvim as the first and only argument to start it
-    arg = 'leetcode.nvim',
+    -- Default programming language for problems
+    lang = 'python3', -- available: cpp, python3, java, javascript, ruby, swift, golang
 
-    -- Default coding language
-    lang = 'python3',
-
-    -- CN settings (leetcode.cn)
+    -- Leetcode.cn (China) configuration
     cn = {
-      enabled = false, -- Set to true if you want to use leetcode.cn
-      translator = true,
-      translate_problems = true,
+      enabled = false, -- enable leetcode.cn
+      translator = false, -- enable translator
+      translate_problems = false, -- translate problem description
     },
 
-    -- Directory settings for storage and cache
+    -- Storage configuration for caching and session management
     storage = {
+      -- Directory to store problem cache and session data
       home = vim.fn.stdpath 'data' .. '/leetcode',
       cache = vim.fn.stdpath 'cache' .. '/leetcode',
     },
 
-    -- Logging and plugins configuration
-    logging = true,
+    -- Plugin behavior configuration
     plugins = {
-      non_standalone = false, -- Set to true if you want to run leetcode.nvim within your existing session
+      non_standalone = true, -- allows using within existing session
     },
 
-    -- Console configuration
+    -- Enable debug logging
+    logging = true,
+
+    -- Console configuration for running and testing code
     console = {
-      open_on_runcode = true, -- Auto-open console when running code
-      dir = 'row', -- Console layout direction
-      size = { -- Console window size
-        width = '90%',
-        height = '75%',
+      open_on_runcode = true, -- auto-open console on code execution
+      dir = 'row', -- console split direction ("row" or "col")
+      size = {
+        width = '90%', -- console window width
+        height = '75%', -- console window height
       },
       result = {
-        size = '60%',
-      },
-      testcase = {
-        virt_text = true,
-        size = '40%',
+        size = '60%', -- result window size ratio
       },
     },
 
-    -- Description window configuration
+    -- Problem description display settings
     description = {
-      position = 'left',
-      width = '40%',
-      show_stats = true,
+      position = 'left', -- description window position
+      width = '40%', -- description window width
+      show_stats = true, -- show problem statistics
     },
 
-    -- Image support (requires image.nvim)
-    image_support = false,
-
-    -- Code injection configuration
-    injector = {
-      ['python3'] = {
-        before = true, -- Inject default Python imports
-      },
-      ['cpp'] = {
-        before = {
-          '#include <bits/stdc++.h>',
-          'using namespace std;',
-        },
-        after = 'int main() {}',
-      },
-      ['java'] = {
-        before = 'import java.util.*;',
-      },
-    },
-
-    -- Hook functions for various events
-    hooks = {
-      ['enter'] = {}, -- Functions to run when entering leetcode.nvim
-      ['question_enter'] = {}, -- Functions to run when entering a question
-      ['leave'] = {}, -- Functions to run when leaving leetcode.nvim
-    },
-
-    -- Keybindings configuration
-    keys = {
-      toggle = { 'q' }, -- Toggle/exit
-      confirm = { '<CR>' }, -- Confirm selection
-      reset_testcases = 'r', -- Reset testcases
-      use_testcase = 'U', -- Use testcase
-      focus_testcases = 'H', -- Focus on testcases
-      focus_result = 'L', -- Focus on result
-    },
-
-    -- Custom theme configuration (optional)
-    theme = {
-      ['alt'] = {
-        bg = '#282828', -- Alternative background color
-      },
-      ['normal'] = {
-        fg = '#d4d4d4', -- Normal text color
-      },
-    },
-
-    -- Cache update interval
-    cache = {
-      update_interval = 60 * 60 * 24 * 7, -- Update cache every 7 days
-    },
+    image_support = false, -- disable image support for lighter load
   },
 
-  -- Lazy loading configuration
-  lazy = false, -- Set to true if you want to lazy load
-  -- Alternative lazy loading based on argument:
-  -- lazy = "leetcode.nvim" ~= vim.fn.argv()[1],
+  -- Lazy load on specific commands
+  cmd = {
+    'LeetCode',
+    'LeetCodeTest',
+    'LeetCodeSubmit',
+    'LeetCodeList',
+  },
 
-  -- Priority (optional)
-  priority = 1000,
+  keys = {
+    -- Menu navigation
+    { '<leader>lm', '<cmd>LeetCode<cr>', desc = 'LeetCode Menu' },
+    { '<leader>ll', '<cmd>LeetCodeList<cr>', desc = 'Problem List' },
+
+    -- Problem interaction
+    { '<leader>lt', '<cmd>LeetCodeTest<cr>', desc = 'Run Test Cases' },
+    { '<leader>ls', '<cmd>LeetCodeSubmit<cr>', desc = 'Submit Solution' },
+    { '<leader>ld', '<cmd>LeetCodeDesc<cr>', desc = 'Problem Description' },
+
+    -- Session management
+    { '<leader>lr', '<cmd>LeetCodeReset<cr>', desc = 'Reset Code' },
+    { '<leader>lx', '<cmd>LeetCodeExit<cr>', desc = 'Exit LeetCode' },
+
+    -- Console controls
+    { '<leader>lc', '<cmd>LeetCodeConsole<cr>', desc = 'Toggle Console' },
+  },
+
+  config = function(_, opts)
+    vim.keymap.set('n', '<leader>lp', function()
+      vim.ui.select({
+        'Easy',
+        'Medium',
+        'Hard',
+      }, {
+        prompt = 'Select difficulty:',
+      }, function(selected)
+        if selected then
+          vim.cmd('LeetCodeList ' .. selected)
+        end
+      end)
+    end, { desc = 'List by Difficulty' })
+
+    require('leetcode').setup(opts)
+
+    -- Additional autocommands for LeetCode buffer
+    vim.api.nvim_create_autocmd('FileType', {
+      pattern = 'leetcode.nvim',
+      callback = function()
+        -- Enable wrapping in problem description
+        vim.opt_local.wrap = true
+        -- Enable spell checking
+        vim.opt_local.spell = true
+      end,
+    })
+  end,
 }
