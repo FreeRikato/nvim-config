@@ -3,7 +3,7 @@ return {
   dependencies = {
     'nvim-lua/plenary.nvim',
   },
-  event = 'VeryLazy',
+  event = 'VimEnter',
   priority = 1000, -- Ensure it loads early
   -- Keymaps that don't conflict with oil.nvim
   keys = {
