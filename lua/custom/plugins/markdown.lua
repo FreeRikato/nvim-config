@@ -88,35 +88,31 @@ return {
           vim.keymap.set('n', '<leader>zo', 'zR', { desc = 'Open all folds', buffer = true })
 
           -- Local settings
-          local opt = vim.opt_local
-          opt.spell = true
-          opt.spelllang = 'en_us'
-          opt.wrap = true
-          opt.linebreak = true
-          opt.conceallevel = 2
-          opt.foldenable = true
-          opt.foldmethod = 'expr'
-          opt.foldexpr = 'nvim_treesitter#foldexpr()'
-          opt.textwidth = 80
-          opt.formatoptions = opt.formatoptions
-            + 't' -- Auto-wrap text using textwidth
-            + 'n' -- Recognize numbered lists
-            + 'j' -- Remove comment leader when joining lines
-            - 'o' -- Don't continue comments with o/O
+          local opt_local = vim.opt_local
+          opt_local.spell = true
+          opt_local.spelllang = 'en_us'
+          opt_local.wrap = true
+          opt_local.linebreak = true
+          opt_local.conceallevel = 2
+          opt_local.foldenable = true
+          opt_local.foldmethod = 'expr'
+          opt_local.foldexpr = 'nvim_treesitter#foldexpr()'
+          opt_local.textwidth = 80
 
-          -- Enable treesitter syntax highlighting
-          vim.treesitter.start()
+          -- Ensure all folds are open by default for Markdown files
+          opt_local.foldlevelstart = 99
+
+          opt_local.formatoptions:append {
+            t = true, -- Auto-wrap text using textwidth
+            n = true,
+            j = true,
+          }
+
+          opt.formatoptions:remove { 'o' }
         end,
       })
 
       -- Markdown preview settings
-      vim.g.mkdp_auto_close = 0
-      vim.g.mkdp_refresh_slow = 1
-      vim.g.mkdp_browser = 'google-chrome' -- Updated for Google Chrome
-      vim.g.mkdp_preview_options = {
-        disable_sync_scroll = 0,
-        disable_filename = 1,
-      }
     end,
   },
 }
