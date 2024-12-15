@@ -1,3 +1,5 @@
+-- ~/.config/nvim/lua/custom/plugins/markdown.lua
+
 return {
   {
     'MeanderingProgrammer/render-markdown.nvim',
@@ -54,9 +56,34 @@ return {
         callback = function()
           local opts = { noremap = true, silent = true, buffer = true }
 
+          -- Function to safely delete a keymap
+          local function safe_del_keymap(mode, key)
+            local status, err = pcall(vim.api.nvim_buf_del_keymap, 0, mode, key)
+            if not status then
+              -- Optionally log the error for debugging
+              -- print(string.format("Keymap deletion failed for %s in mode %s: %s", key, mode, err))
+            end
+          end
+
+          -- Safely delete any existing mappings for <C-i>
+          safe_del_keymap('i', '<C-i>')
+          safe_del_keymap('n', '<C-i>')
+
+          -- Ensure <Tab> behaves as default (inserts a tab character)
+          vim.keymap.set('i', '<Tab>', '<Tab>', { desc = 'Insert Tab', buffer = true })
+          vim.keymap.set('i', '<S-Tab>', '<C-d>', { desc = 'Shift-Tab (Unindent)', buffer = true })
+
           -- Text formatting
           vim.keymap.set('i', '<C-b>', '****<Left><Left>', { desc = 'Bold text', buffer = true })
-          vim.keymap.set('i', '<C-i>', '__<Left>', { desc = 'Italic text', buffer = true })
+          -- Removed the conflicting <C-i> mapping
+          -- Added a new mapping for Italic text using <leader>i in Normal Mode
+          vim.keymap.set('n', '<leader>i', function()
+            -- Insert '__' and move cursor between them in Insert Mode
+            vim.api.nvim_put({ '__' }, 'c', true, true)
+            vim.api.nvim_feedkeys('<Left>', 'n', true)
+            vim.cmd 'startinsert'
+          end, { desc = 'Insert Italic Markdown', buffer = true })
+
           vim.keymap.set('i', '<C-k>', '``<Left>', { desc = 'Inline code', buffer = true })
           vim.keymap.set('i', '<C-l>', '[]()<Left><Left><Left>', { desc = 'Create link', buffer = true })
 
@@ -108,11 +135,11 @@ return {
             j = true,
           }
 
-          opt.formatoptions:remove { 'o' }
+          opt_local.formatoptions:remove { 'o' }
         end,
       })
 
-      -- Markdown preview settings
+      -- Markdown preview settings (if any additional configurations are needed, add them here)
     end,
   },
 }

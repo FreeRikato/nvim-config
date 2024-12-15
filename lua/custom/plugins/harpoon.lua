@@ -30,7 +30,7 @@ return {
     end, { desc = 'Add file to Harpoon' })
 
     -- Toggle the harpoon quick menu with enhanced UI
-    vim.keymap.set('n', '<leader>h', function()
+    vim.keymap.set('n', '<leader>H', function()
       harpoon.ui:toggle_quick_menu(harpoon:list(), {
         border = 'rounded', -- Add rounded borders to the menu
         title = 'Harpoon', -- Add a title to the menu
