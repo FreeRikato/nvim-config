@@ -7,12 +7,9 @@ return {
   config = function()
     require('oil').setup {
       -- File Explorer Settings
-      default_file_explorer = true,
+      default_file_explorer = false,
       columns = {
         'icon',
-        'permissions',
-        'size',
-        'mtime',
       },
 
       -- Keymaps with Descriptions
