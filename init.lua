@@ -857,7 +857,8 @@ require('lazy').setup({
     'folke/tokyonight.nvim',
     priority = 1000,
     opts = {
-      transparent = true, -- Enable transparency
+      -- transparent = true, -- Enable transparency
+      transparent = false, -- Enable transparency
       style = 'night',
       styles = {
         -- Style to be applied to different syntax groups
@@ -866,8 +867,8 @@ require('lazy').setup({
         functions = {},
         variables = {},
         -- Background styles. Can be "dark", "transparent" or "normal"
-        sidebars = 'transparent',
-        floats = 'transparent',
+        -- sidebars = 'transparent',
+        -- floats = 'transparent',
       },
     },
     init = function()
