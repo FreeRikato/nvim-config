@@ -11,6 +11,10 @@ return {
       columns = {
         'icon',
       },
+      view_options = {
+        show_hidden = true,
+        natural_order = 'fast',
+      },
 
       -- Keymaps with Descriptions
       keymaps = {
