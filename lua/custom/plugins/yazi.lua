@@ -8,7 +8,7 @@ return {
   -- Keymaps that don't conflict with oil.nvim
   keys = {
     { '<leader>-', '<cmd>Yazi<cr>', desc = 'Open yazi at current file' },
-    { '<leader>_', '<cmd>Yazi cwd<cr>', desc = 'Open yazi in working directory' },
+    { '<leader>n', '<cmd>Yazi cwd<cr>', desc = 'Open yazi in working directory' },
     { '<leader>yt', '<cmd>Yazi toggle<cr>', desc = 'Toggle yazi session' },
   },
   opts = {

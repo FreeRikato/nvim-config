@@ -192,6 +192,10 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+-- Create splits with intuitive keymaps
+vim.keymap.set('n', '<leader>|', '<cmd>vsplit<CR>', { desc = 'Split window vertically' })
+vim.keymap.set('n', '<leader>_', '<cmd>split<CR>', { desc = 'Split window horizontally' })
+
 -- Navigate vim panes better
 vim.keymap.set('n', '<C-k>', ':wincmd k<CR>')
 vim.keymap.set('n', '<C-j>', ':wincmd j<CR>')
@@ -408,6 +412,8 @@ require('lazy').setup({
 
       -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
+      local actions = require 'telescope.actions'
+      local action_state = require 'telescope.actions.state'
       vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
       vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
       vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
@@ -418,6 +424,33 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+      -- Vertical split + file
+      vim.keymap.set('n', '<leader>svf', function()
+        builtin.find_files {
+          attach_mappings = function(_, map)
+            map('i', '<CR>', function(prompt_bufnr)
+              local entry = action_state.get_selected_entry()
+              actions.close(prompt_bufnr)
+              vim.cmd('vsplit ' .. vim.fn.fnameescape(entry.path))
+            end)
+            return true
+          end,
+        }
+      end, { desc = '[S]plit [V]ertical + find [F]ile' })
+
+      -- Horizontal split + file
+      vim.keymap.set('n', '<leader>shf', function()
+        builtin.find_files {
+          attach_mappings = function(_, map)
+            map('i', '<CR>', function(prompt_bufnr)
+              local entry = action_state.get_selected_entry()
+              actions.close(prompt_bufnr)
+              vim.cmd('split ' .. vim.fn.fnameescape(entry.path))
+            end)
+            return true
+          end,
+        }
+      end, { desc = '[S]plit [H]orizontal + find [F]ile' })
 
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
