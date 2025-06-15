@@ -157,7 +157,20 @@ vim.opt.inccommand = 'split'
 vim.opt.cursorline = true
 
 -- Minimal number of screen lines to keep above and below the cursor.
+
 vim.opt.scrolloff = 10
+
+-- [[ Folding settings ]]
+-- Use Treesitter (and LSP FoldingRange if available) for code folding
+vim.opt.foldmethod = 'expr'
+vim.opt.foldexpr = 'nvim_treesitter#foldexpr()'
+-- Keep folds open by default; change number for initial fold level
+vim.opt.foldlevelstart = 99
+vim.opt.foldenable = true
+
+-- Keymaps for opening/closing all folds
+vim.keymap.set('n', 'zR', 'zR', { desc = 'Open all folds' })
+vim.keymap.set('n', 'zM', 'zM', { desc = 'Close all folds' })
 
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
