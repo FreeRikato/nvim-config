@@ -528,7 +528,16 @@ require('lazy').setup({
               mode = mode or 'n'
               vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
             end
-
+            -- Show diagnostics automatically when holding the cursor
+            vim.api.nvim_create_autocmd('CursorHold', {
+              group = vim.api.nvim_create_augroup('kickstart-diagnostics-hover', { clear = true }),
+              callback = function()
+                vim.diagnostic.open_float(nil, {
+                  focusable = false, -- This prevents the popup from taking focus
+                  scope = 'cursor',
+                })
+              end,
+            })
             map('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
             map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
             map('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
@@ -538,6 +547,8 @@ require('lazy').setup({
             map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
             map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n', 'x' })
             map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+            map('K', vim.lsp.buf.hover, 'Hover Documentation') -- Show documentation for what is under the cursor
+            map('gl', vim.diagnostic.open_float, 'Line Diagnostics') -- Show diagnostics for the current line
 
             local client = vim.lsp.get_client_by_id(event.data.client_id)
             if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
