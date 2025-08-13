@@ -81,7 +81,6 @@ return {
     vim.keymap.set('n', '<S-k>', function()
       harpoon:list():select(3)
     end, { desc = 'Harpoon: Chord to buffer 3' })
-
     vim.keymap.set('n', '<S-l>', function()
       harpoon:list():select(4)
     end, { desc = 'Harpoon: Chord to buffer 4' })

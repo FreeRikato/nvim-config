@@ -6,6 +6,13 @@ return {
     'L3MON4D3/LuaSnip', -- or mini.snippets if you prefer
     'onsails/lspkind.nvim',
     'nvim-tree/nvim-web-devicons',
+    'supermaven-inc/supermaven-nvim',
+    opts = {
+      keymaps = {
+        accept_suggestion = nil,
+      },
+      disable_inline_completion = true,
+    },
   },
   opts = {
     enabled = function()
@@ -14,8 +21,8 @@ return {
 
     keymap = {
       preset = 'default',
-      ['<Tab>'] = { 'snippet_forward', 'select_next', 'fallback' },
-      ['<S-Tab>'] = { 'snippet_backward', 'select_prev', 'fallback' },
+      ['<C-n>'] = { 'snippet_forward', 'select_next', 'fallback' },
+      ['<C-p>'] = { 'snippet_backward', 'select_prev', 'fallback' },
       ['<C-y>'] = { 'select_and_accept' },
     },
 
@@ -99,6 +106,12 @@ return {
 
     sources = {
       default = { 'lsp', 'path', 'snippets', 'buffer' },
+      compat = { 'supermaven' },
+      windows = {
+        autocomplete = {
+          selection = 'auto_insert',
+        },
+      },
       providers = {
         buffer = {
           opts = {

@@ -437,6 +437,20 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+      -- Git Worktree via Telescope
+      vim.keymap.set('n', '<leader>gw', function()
+        require('telescope').extensions.git_worktree.git_worktrees()
+      end, { desc = '[G]it [W]orktrees (Switch/Delete)' })
+
+      vim.keymap.set('n', '<leader>gW', function()
+        require('telescope').extensions.git_worktree.create_git_worktree()
+      end, { desc = '[G]it Create [W]orktree' })
+
+      vim.keymap.set('n', '<leader>z', function()
+        local last_search = vim.fn.getreg '/'
+        vim.cmd('vimgrep /' .. last_search .. '/ %')
+        vim.cmd 'copen'
+      end)
       -- Vertical split + file
       vim.keymap.set('n', '<leader>svf', function()
         builtin.find_files {
