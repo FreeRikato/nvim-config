@@ -3,16 +3,11 @@ return {
   version = '1.*',
   dependencies = {
     'rafamadriz/friendly-snippets',
-    'L3MON4D3/LuaSnip', -- or mini.snippets if you prefer
+    'L3MON4D3/LuaSnip',
     'onsails/lspkind.nvim',
     'nvim-tree/nvim-web-devicons',
-    'supermaven-inc/supermaven-nvim',
-    opts = {
-      keymaps = {
-        accept_suggestion = nil,
-      },
-      disable_inline_completion = true,
-    },
+    -- REMOVED: 'supermaven-inc/supermaven-nvim'
+    -- We don't want to depend on it here; we want them running side-by-side.
   },
   opts = {
     enabled = function()
@@ -21,9 +16,23 @@ return {
 
     keymap = {
       preset = 'default',
-      ['<C-n>'] = { 'snippet_forward', 'select_next', 'fallback' },
-      ['<C-p>'] = { 'snippet_backward', 'select_prev', 'fallback' },
+
+      -- Navigation
+      ['<C-n>'] = { 'select_next', 'fallback' },
+      ['<C-p>'] = { 'select_prev', 'fallback' },
+
+      -- Selection
       ['<C-y>'] = { 'select_and_accept' },
+
+      -- Enter only accepts if you've actively selected something, otherwise new line
+      ['<CR>'] = { 'accept', 'fallback' },
+
+      -- KEY OPTIMIZATION FOR SUPERMAVEN:
+      -- We map Tab ONLY to snippet jumping.
+      -- If we are not in a snippet, we 'fallback'.
+      -- This passes the keystroke to Neovim, allowing Supermaven to catch it.
+      ['<Tab>'] = { 'snippet_forward', 'fallback' },
+      ['<S-Tab>'] = { 'snippet_backward', 'fallback' },
     },
 
     appearance = {
@@ -31,23 +40,19 @@ return {
     },
 
     completion = {
+      -- Disable Blink's ghost text completely.
+      -- Supermaven will provide the ghost text.
+      ghost_text = { enabled = false },
+
       keyword = { range = 'full' },
-      trigger = {
-        show_on_keyword = true,
-        show_on_trigger_character = true,
-        show_on_accept_on_trigger_character = true,
-        show_on_insert_on_trigger_character = true,
-      },
+
       list = {
         selection = {
-          preselect = true,
-          auto_insert = true,
-        },
-        cycle = {
-          from_top = true,
-          from_bottom = true,
-        },
+          preselect = false, -- Don't auto-select first item (Safety for <CR>)
+          auto_insert = true
+        }
       },
+
       menu = {
         auto_show = true,
         draw = {
@@ -58,14 +63,12 @@ return {
           },
           components = {
             item_idx = {
-              text = function(ctx)
-                return tostring(ctx.idx)
-              end,
+              text = function(ctx) return tostring(ctx.idx) end,
               highlight = 'BlinkCmpItemIdx',
             },
             kind_icon = {
               text = function(ctx)
-                local icon
+                local icon = ctx.kind_icon
                 if ctx.source_name == 'Path' then
                   icon = require('nvim-web-devicons').get_icon(ctx.label) or ctx.kind_icon
                 else
@@ -79,39 +82,37 @@ return {
       },
       documentation = {
         auto_show = true,
-        auto_show_delay_ms = 500,
-      },
-      ghost_text = {
-        enabled = true,
-        show_with_selection = true,
-        show_without_selection = false,
-        show_with_menu = false,
-        show_without_menu = true,
-      },
-      accept = {
-        auto_brackets = {
-          enabled = true,
-        },
+        auto_show_delay_ms = 500, -- Wait 500ms so it doesn't cover Supermaven
+        treesitter_highlighting = true,
+        window = { border = 'rounded' },
       },
     },
 
-    fuzzy = {
-      implementation = 'prefer_rust_with_warning',
-      sorts = {
-        'exact',
-        'score',
-        'sort_text',
+    -- Command Line Configuration (The Fix)
+    cmdline = {
+      enabled = true,
+      keymap = {
+        preset = 'inherit', -- Inherits your C-n/C-p mappings defined above
+      },
+      sources = function()
+        local type = vim.fn.getcmdtype()
+        -- Search mode (/)
+        if type == '/' or type == '?' then return { 'buffer' } end
+        -- Command mode (:)
+        if type == ':' then return { 'cmdline', 'path' } end
+        return {}
+      end,
+      completion = {
+        menu = { auto_show = true },
+        ghost_text = { enabled = false },
       },
     },
 
+    fuzzy = { implementation = 'prefer_rust_with_warning' },
+
+    -- Sources
     sources = {
       default = { 'lsp', 'path', 'snippets', 'buffer' },
-      compat = { 'supermaven' },
-      windows = {
-        autocomplete = {
-          selection = 'auto_insert',
-        },
-      },
       providers = {
         buffer = {
           opts = {
@@ -124,9 +125,11 @@ return {
         },
         lsp = {
           transform_items = function(_, items)
-            local kind = require('blink.cmp.types').CompletionItemKind
+            local CompletionItemKind = require('blink.cmp.types').CompletionItemKind
             return vim.tbl_filter(function(item)
-              return item.kind ~= kind.Keyword -- filter out language keywords
+              -- Keep the menu clean, remove Keywords and Text
+              return item.kind ~= CompletionItemKind.Keyword
+                 and item.kind ~= CompletionItemKind.Text
             end, items)
           end,
         },
@@ -139,20 +142,7 @@ return {
 
     signature = {
       enabled = true,
-      window = {
-        border = 'rounded',
-        winhighlight = 'Normal:BlinkCmpSignatureHelp,FloatBorder:BlinkCmpSignatureHelpBorder',
-      },
-    },
-
-    cmdline = {
-      enabled = true,
-      keymap = { preset = 'inherit' },
-      sources = { 'buffer', 'cmdline' },
-      completion = {
-        menu = { auto_show = true },
-        ghost_text = { enabled = true },
-      },
+      window = { border = 'rounded' },
     },
   },
   opts_extend = { 'sources.default' },

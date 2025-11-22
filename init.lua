@@ -217,14 +217,18 @@ vim.keymap.set('n', '<C-l>', ':wincmd l<CR>')
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
+-- Navigate between open buffers
+vim.keymap.set('n', '<C-n>', '<cmd>bnext<CR>', { desc = 'Go to next buffer' })
+vim.keymap.set('n', '<C-p>', '<cmd>bprevious<CR>', { desc = 'Go to previous buffer' })
+
 -- Highlight when yanking (copying) text
 --  Try it with `yap` in normal mode
---  See `:help vim.highlight.on_yank()`
+--  See `:help vim.hl.on_yank()`
 vim.api.nvim_create_autocmd('TextYankPost', {
   desc = 'Highlight when yanking (copying) text',
   group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
   callback = function()
-    vim.highlight.on_yank()
+    vim.hl.on_yank()
   end,
 })
 
@@ -517,6 +521,16 @@ require('lazy').setup({
       },
     },
     { 'Bilal2453/luvit-meta', lazy = true },
+
+    -- nvim-vtsls: Enhanced TypeScript support with auto-imports and refactoring
+    {
+      'yioneko/nvim-vtsls',
+      lazy = true,
+      opts = {},
+      config = function()
+        require('vtsls').config { refactor_auto_rename = true }
+      end,
+    },
     {
       -- Main LSP Configuration
       'neovim/nvim-lspconfig',
@@ -525,6 +539,9 @@ require('lazy').setup({
         { 'williamboman/mason.nvim', config = true }, -- NOTE: Must be loaded before dependants
         'williamboman/mason-lspconfig.nvim',
         'WhoIsSethDaniel/mason-tool-installer.nvim',
+
+        -- 👇 ADD THIS LINE HERE
+        'b0o/schemastore.nvim',
 
         -- Useful status updates for LSP.
         -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
@@ -565,7 +582,7 @@ require('lazy').setup({
             map('gl', vim.diagnostic.open_float, 'Line Diagnostics') -- Show diagnostics for the current line
 
             local client = vim.lsp.get_client_by_id(event.data.client_id)
-            if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
+            if client:supports_method 'textDocument/documentHighlight' then
               -- ... (highlighting autocommands remain the same)
             end
 
@@ -580,14 +597,77 @@ require('lazy').setup({
         local capabilities = require('blink.cmp').get_lsp_capabilities()
 
         local servers = {
-          pyright = {},
+          -- 1. TypeScript / JS: The "God Tier" fastest server
+          vtsls = {
+            -- Explicitly disable formatting so Biome takes over
+            settings = {
+              typescript = {
+                updateImportsOnFileMove = { enabled = 'always' },
+                inlayHints = {
+                  parameterNames = { enabled = 'literals' },
+                  parameterTypes = { enabled = true },
+                  variableTypes = { enabled = true },
+                  propertyDeclarationTypes = { enabled = true },
+                  functionLikeReturnTypes = { enabled = true },
+                  enumMemberValues = { enabled = true },
+                },
+              },
+            },
+          },
+
+          -- 2. Python: Basedpyright (Fast C++ based, supports type stubs better than Pyright)
+          basedpyright = {
+            settings = {
+              basedpyright = {
+                disableOrganizeImports = true, -- Let Ruff handle this
+                analysis = {
+                  typeCheckingMode = 'standard', -- Change to 'all' for strict checking
+                  autoSearchPaths = true,
+                  diagnosticMode = 'openFilesOnly',
+                  useLibraryCodeForTypes = true,
+                },
+              },
+            },
+          },
+
+          -- 3. Python Linting: Ruff (Rust-based, extremely fast)
+          ruff = {
+            -- Disable Ruff's conflicting features if necessary, but usually fine defaults
+            trace = 'messages',
+            init_options = {
+              settings = {
+                logLevel = 'debug',
+              },
+            },
+          },
+
+          -- 4. Biome: The unified fast tool for JS/TS/JSON
+          biome = {},
+
+          -- 5. JSON: Use vscode-json-languageserver for Schema Validation (Biome doesn't do schemas yet)
+          jsonls = {
+            settings = {
+              json = {
+                schemas = require('schemastore').json.schemas(),
+                validate = { enable = true },
+              },
+            },
+          },
+
           lua_ls = {
             settings = {
               Lua = {
                 runtime = { version = 'LuaJIT' },
-                diagnostics = { globals = { 'vim' } },
-                workspace = { library = vim.api.nvim_get_runtime_file('', true), checkThirdParty = false },
+                workspace = {
+                  checkThirdParty = false,
+                  library = {
+                    '${3rd}/luv/library',
+                    unpack(vim.api.nvim_get_runtime_file('', true)),
+                  },
+                },
+                completion = { callSnippet = 'Replace' },
                 telemetry = { enable = false },
+                diagnostics = { disable = { 'missing-fields' } },
               },
             },
           },
@@ -595,38 +675,42 @@ require('lazy').setup({
 
         require('mason').setup()
 
-        -- This is the section you need to change.
-        -- We are merging the 'ensure_installed' and the setup handler into one call.
-        require('mason-lspconfig').setup {
-          ensure_installed = vim.tbl_keys(servers),
-          handlers = {
-            function(server_name)
-              local server = servers[server_name] or {}
-              -- This combines the global capabilities with the server-specific ones
-              server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-              -- The on_attach function is now passed directly to the server setup
-              -- It seems you had a global on_attach defined, let's ensure it's being called.
-              -- Note: The original kickstart config might define on_attach inside the lsp-attach autocommand.
-              -- For clarity, we'll keep it as is since your LSP keymaps are set in the autocmd.
-              require('lspconfig')[server_name].setup(server)
-            end,
-          },
-        }
-
+        -- Ensure Mason installs these exact tools
         require('mason-tool-installer').setup {
           ensure_installed = {
-            'typescript-language-server',
-            'pyright',
-            'lua-language-server',
-            'eslint_d',
-            'flake8',
-            'prettier',
-            'black',
-            'stylua',
+            'stylua', -- Lua formatter
+            'vtsls', -- TypeScript/JavaScript language server
+            'basedpyright', -- Python language server
+            'ruff', -- Python linter and formatter
+            'biome', -- JS/TS/JSON formatter and linter
+            'jsonls', -- JSON language server for schema validation
           },
           auto_update = true,
           run_on_start = true,
           start_delay = 3000,
+        }
+
+        require('mason-lspconfig').setup {
+          ensure_installed = {}, -- Handled by mason-tool-installer / servers key above
+          automatic_installation = false,
+          handlers = {
+            function(server_name)
+              local server = servers[server_name] or {}
+              server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
+              require('lspconfig')[server_name].setup(server)
+            end,
+            -- Explicit handler for vtsls to hook into the plugin
+            ['vtsls'] = function()
+              require('lspconfig').vtsls.setup {
+                capabilities = capabilities,
+                settings = servers.vtsls.settings,
+                -- Hook for the nvim-vtsls plugin
+                on_attach = function(client, bufnr)
+                  require('vtsls').on_attach(client, bufnr)
+                end,
+              }
+            end,
+          },
         }
       end,
     },
@@ -634,34 +718,43 @@ require('lazy').setup({
     {
       'stevearc/conform.nvim',
       event = { 'BufWritePre' },
+      cmd = { 'ConformInfo' },
       keys = {
         {
           '<leader>f',
           function()
-            require('conform').format { async = true, lsp_format = 'fallback' }
+            require('conform').format { async = true, lsp_fallback = true }
           end,
           mode = '',
           desc = '[F]ormat buffer',
         },
       },
       opts = {
+        notify_on_error = false,
         format_on_save = function(bufnr)
+          -- Disable "format_on_save lsp_fallback" for languages that don't have a well standardized LSP formatter
+          local disable_filetypes = { c = true, cpp = true }
           return {
-            timeout_ms = 1000,
-            lsp_format = 'fallback',
+            timeout_ms = 3000,
+            lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
           }
         end,
         formatters_by_ft = {
           lua = { 'stylua' },
-          python = { 'black' },
-          typescript = { 'prettier' },
-          typescriptreact = { 'prettier' },
-          javascript = { 'prettier' },
-          json = { 'prettier' },
-          -- Add more filetypes and their respective formatters if needed
+
+          -- Python: Use Ruff for both formatting and organizing imports
+          python = { 'ruff_format', 'ruff_organize_imports' },
+
+          -- JavaScript / TypeScript: Biome is vastly faster than Prettier
+          javascript = { 'biome' },
+          typescript = { 'biome' },
+          javascriptreact = { 'biome' },
+          typescriptreact = { 'biome' },
+
+          -- JSON: Biome formats JSON/JSONC perfectly
+          json = { 'biome' },
+          jsonc = { 'biome' },
         },
-        -- Optional: You can specify additional options here
-        -- For example, you can set up linters or other tools
       },
     },
 

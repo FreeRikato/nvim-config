@@ -56,13 +56,13 @@ return {
 
     -- Navigate through marks sequentially with wrap-around
     -- When you reach the end, it wraps to the beginning and vice versa
-    vim.keymap.set('n', '<C-p>', function()
-      harpoon:list():prev { ui_nav_wrap = true }
-    end, { desc = 'Harpoon: Prev buffer' })
-
-    vim.keymap.set('n', '<C-n>', function()
-      harpoon:list():next { ui_nav_wrap = true }
-    end, { desc = 'Harpoon: Next buffer' })
+    -- vim.keymap.set('n', '<C-p>', function()
+    --   harpoon:list():prev { ui_nav_wrap = true }
+    -- end, { desc = 'Harpoon: Prev buffer' })
+    --
+    -- vim.keymap.set('n', '<C-n>', function()
+    --   harpoon:list():next { ui_nav_wrap = true }
+    -- end, { desc = 'Harpoon: Next buffer' })
 
     ------------------------
     -- CHORD STYLE NAVIGATION

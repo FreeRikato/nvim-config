@@ -15,7 +15,6 @@ return {
         show_hidden = true,
         natural_order = 'fast',
       },
-
       -- Keymaps with Descriptions
       keymaps = {
         -- Normal Mode Keymaps
@@ -36,7 +35,6 @@ return {
           callback = 'actions.close',
           mode = 'n',
         },
-
         -- Visual Mode Keymaps
         ['mv'] = {
           desc = 'Multi-Select Files',
@@ -44,7 +42,6 @@ return {
           'actions.select_vsplit',
         },
       },
-
       -- Window and Buffer Options
       buf_options = {
         buflisted = false,
@@ -52,14 +49,12 @@ return {
       },
       win_options = {
         wrap = false,
-        signcolumn = 'no',
+        signcolumn = 'yes:2', -- Changed from 'no' to 'yes:2' for git status
         cursorcolumn = false,
       },
-
       -- Advanced Configuration
       constrain_cursor = 'editable',
       watch_for_changes = true,
-
       -- Floating Window Configuration
       float = {
         padding = 2,
@@ -69,7 +64,6 @@ return {
       },
     }
   end,
-
   -- Lazy Loading and Keybindings
   keys = {
     {
