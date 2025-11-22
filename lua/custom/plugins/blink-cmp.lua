@@ -24,9 +24,6 @@ return {
       -- Selection
       ['<C-y>'] = { 'select_and_accept' },
 
-      -- Enter only accepts if you've actively selected something, otherwise new line
-      ['<CR>'] = { 'accept', 'fallback' },
-
       -- KEY OPTIMIZATION FOR SUPERMAVEN:
       -- We map Tab ONLY to snippet jumping.
       -- If we are not in a snippet, we 'fallback'.
@@ -48,7 +45,7 @@ return {
 
       list = {
         selection = {
-          preselect = false, -- Don't auto-select first item (Safety for <CR>)
+          preselect = false,
           auto_insert = true
         }
       },
