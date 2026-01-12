@@ -23,7 +23,9 @@ return {
   keys = {
     {
       'ff', -- The suggested keybinding from the documentation
-      function() require('fff').find_files() end,
+      function()
+        require('fff').find_files()
+      end,
       desc = 'FFFind files',
     },
   },
